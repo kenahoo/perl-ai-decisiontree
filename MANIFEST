@@ -4,4 +4,6 @@ INSTALL
 MANIFEST
 Makefile.PL
 README
-test.pl
+eg/example.pl
+t/01-simple.t
+t/02-noisy.t
