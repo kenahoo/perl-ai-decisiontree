@@ -1,5 +1,5 @@
 package AI::DecisionTree;
-$VERSION = '0.02_01';
+$VERSION = '0.03';
 
 use 5.006;
 use strict;
