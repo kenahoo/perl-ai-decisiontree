@@ -4,6 +4,7 @@ $VERSION = '0.02_01';
 use 5.006;
 use strict;
 use Carp;
+use AI::DecisionTree::Instance;
 
 sub new {
   my $package = shift;
@@ -12,6 +13,7 @@ sub new {
 		prune => 1,
 		@_,
 		nodes => 0,
+		instances => [],
 	       }, $package;
 }
 
@@ -24,14 +26,14 @@ sub add_instance {
   croak "Missing 'result' parameter" unless defined $args{result};
   
   $self->{attributes}{$_}{$args{attributes}{$_}} = 1 foreach keys %{$args{attributes}};
-  push @{$self->{instances}}, {%args};
+  push @{$self->{instances}}, AI::DecisionTree::Instance->new($args{attributes}, $args{result});
   $self->{results}{ $args{result} } = 1;
 }
 
 sub train {
   my ($self) = @_;
   croak "Cannot train the same tree twice" if $self->{tree};
-  croak "Must add training instances before calling train()" unless $self->{instances};
+  croak "Must add training instances before calling train()" unless @{ $self->{instances} };
   
   $self->{tree} = $self->_expand_node( instances => $self->{instances} );
   delete $self->{instances};
@@ -55,13 +57,13 @@ sub _expand_node {
   $self->{nodes}++;
 
   my %results;
-  $results{$_->{result}}++ foreach @$instances;
+  $results{$_->result}++ foreach @$instances;
   my @results = map {$_,$results{$_}} sort {$results{$b} <=> $results{$a}} keys %results;
   my %node = ( distribution => \@results, instances => scalar @$instances );
 
   if (keys(%results) == 1) {
     # All these instances have the same result - make this node a leaf
-    $node{result} = $instances->[0]{result};
+    $node{result} = $instances->[0]->result;
     return \%node;
   }
 
@@ -82,7 +84,7 @@ sub _expand_node {
   
   my %split;
   foreach my $i (@$instances) {
-    push @{$split{ delete $i->{attributes}{$best_attr} }}, $i;
+    push @{$split{ $i->delete_value($best_attr) }}, $i;
   }
 
   foreach my $opt (keys %split) {
@@ -97,16 +99,16 @@ sub best_attr {
 print STDERR '.';
   # 0 is a perfect score, entropy(#instances) is the worst possible score
   
-  my ($best_score, $best_attr) = ($self->entropy( map $_->{result}, @$instances ), undef);
+  my ($best_score, $best_attr) = ($self->entropy( map $_->result, @$instances ), undef);
   foreach my $attr (keys %{$self->{attributes}}) {
 
     # %tallies is correlation between each attr value and result
     # %total is number of instances with each attr value
     my (%tallies, %totals);
     foreach (@$instances) {
-      next unless exists $_->{attributes}{$attr};
-      $tallies{$_->{attributes}{$attr}}{$_->{result}}++;
-      $totals{$_->{attributes}{$attr}}++;
+      next unless defined $_->value($attr);
+      $tallies{ $_->value($attr) }{ $_->result }++;
+      $totals{ $_->value($attr) }++;
     }
     next unless keys %totals; # Make sure at least one instance defines this attribute
     
@@ -175,7 +177,6 @@ sub prune_tree {
     my $score = -$nodes_below - ($exceptions - $simple_rule_exceptions) * $exception_cost;
     #warn "Score = $score = -$nodes_below - ($exceptions - $simple_rule_exceptions) * $exception_cost\n";
     if ($score < 0) {
-warn "Pruning node";
       delete @{$node}{'children', 'split_on', 'exceptions', 'nodes_below'};
       $node->{result} = $node->{distribution}[0];
       # XXX I'm not cleaning up 'exceptions' or 'nodes_below' keys up the tree
@@ -297,6 +298,8 @@ sub rule_statements {
   }
   return @out;
 }
+
+
 
 1;
 __END__
