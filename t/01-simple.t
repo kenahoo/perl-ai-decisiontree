@@ -4,7 +4,7 @@
 #########################
 
 use Test;
-BEGIN { plan tests => 27 };
+BEGIN { plan tests => 30 };
 use AI::DecisionTree;
 ok(1); # If we made it this far, we're ok.
 
@@ -30,7 +30,7 @@ my @cases      = qw(
 my $outcome = pop @attributes;
 
 
-my $dtree = new AI::DecisionTree;
+my $dtree = new AI::DecisionTree(purge => 0);
 while (@cases) {
   my @values = splice @cases, 0, 1 + scalar(@attributes);
   my $result = pop @values;
@@ -67,7 +67,11 @@ $result = $dtree->get_result(
 ok($result, 'yes');
 
 # Make sure rule_statements() works
-ok !!grep {$_ eq "if outlook='overcast' -> 'yes'"} $dtree->rule_statements;
+{
+  my @rules = $dtree->rule_statements;
+  ok @rules, 5;
+  ok !!grep {$_ eq "if outlook='overcast' -> 'yes'"} @rules;
+}
 
 # Make sure rule_tree() works
 ok $dtree->rule_tree->[0], 'outlook';
@@ -105,6 +109,14 @@ if (eval "use GraphViz; 1") {
 
 # Make sure there are 8 nodes
 ok $dtree->nodes, 8;
+
+{
+  # Test max_depth
+  $dtree->train(max_depth => 1);
+  my @rules = $dtree->rule_statements;
+  ok @rules, 3;
+  ok $dtree->depth, 1;
+}
 
 {
   # Should barf on inconsistent data
