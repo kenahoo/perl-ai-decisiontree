@@ -4,7 +4,7 @@
 #########################
 
 use Test;
-BEGIN { plan tests => 16 };
+BEGIN { plan tests => 27 };
 use AI::DecisionTree;
 ok(1); # If we made it this far, we're ok.
 
@@ -154,4 +154,31 @@ ok $dtree->nodes, 8;
     ok $result, 0+($doc->[0] eq 'vampire');
   }
 
+}
+
+{
+  my $t1 = new AI::DecisionTree(purge => 0);
+  my $t2 = new AI::DecisionTree;
+  $t1->add_instance( attributes => { foo => 'bar' },
+		     result => 1, name => 1 );
+  $t1->add_instance( attributes => { foo => 'baz' },
+		     result => 0, name => 2 );
+
+  eval {$t1->train};
+  ok !$@;
+
+  ok $t1->instances->[0]->name, 1;
+  ok $t1->instances->[1]->name, 2;
+  ok $t1->_result($t1->instances->[0]), 1;  # Not a public interface
+  ok $t1->_result($t1->instances->[1]), 0;  # Not a public interface
+
+  $t2->copy_instances(from => $t1);
+  ok $t2->instances->[0]->name, 1;
+  ok $t2->instances->[1]->name, 2;
+  ok $t2->_result($t2->instances->[0]), 1;  # Not a public interface
+  ok $t2->_result($t2->instances->[1]), 0;  # Not a public interface
+
+  $t2->set_results( {1=>0, 2=>1} );
+  ok $t2->_result($t2->instances->[0]), 0;  # Not a public interface
+  ok $t2->_result($t2->instances->[1]), 1;  # Not a public interface
 }
