@@ -1,6 +1,31 @@
 Revision history for Perl extension AI::DecisionTree.
 
-0.02
+0.03
+
+ - Added a 'prune' parameter to new(), which controls whether the tree
+   will be pruned after training.  This is usually a good idea, so the
+   default is to prune.  Currently we prune using a simple
+   minimum-description-length criterion.
+
+ - The list of instances is now deleted after training, since it's no
+   longer needed.
+
+ - Small speedup to the train() method, achieved by less copying of data.
+
+ - If get_result() is called in a list context, it now returns a list
+   containing the assigned result, a "confidence" score (tentative,
+   subject to change), and the tree depth of the leaf this instance
+   ended up at.
+
+ - Internally, each node in the tree now contains information about
+   how many training examples contributed to training this node, and
+   what the distribution of their classes was.
+
+ - Added an as_graphviz() method, which will help visualize trees.
+   They're not terribly pretty graphviz objects yet, but they're
+   visual.
+
+0.02  Sat Aug 10, 2002 21:02
 
  - Added support for noisy data, currently by picking the best (most
    common) result when noise is encountered.  See the 'noise_mode'

@@ -7,3 +7,6 @@ CVS
 ^\.
 \.cvsignore
 ^AI-
+^eg/spam
+^spam
+^tmon\.out$
