@@ -10,6 +10,7 @@ CVS
 ^eg/spam
 ^spam
 ^tmon\.out$
-^Instance/Instance.(xs|c|bundle|inl)$
+^DecisionTree.(c|bundle|o|bs)$
+^Instance/Instance.(c|bundle|o|bs)$
 ^Instance/_Inline
 ^Instance/pm_to_blib$
