@@ -317,17 +317,26 @@ sub get_result {
 sub as_graphviz {
   my $self = shift;
   require GraphViz;
-  my $g = new GraphViz;
+  my $g = GraphViz->new(@_);
 
   my $id = 1;
   my $add_edge = sub {
     my ($self, $node, $parent, $node_name) = @_;
     # We use stringified reference names for node names, as a convenient hack.
 
-    $g->add_node( "$node",
-		  label => $node->{split_on} || $node->{result},
-		  shape => ($node->{split_on} ? 'ellipse' : 'box'),
-		);
+    if ($node->{split_on}) {
+      $g->add_node( "$node",
+		    label => $node->{split_on},
+		    shape => 'ellipse',
+		  );
+    } else {
+      my $i = 0;
+      my $distr = join ',', grep {$i++ % 2} @{$node->{distribution}};
+      $g->add_node( "$node",
+		    label => "$node->{result} ($distr)",
+		    shape => 'box',
+		  );
+    }
     $g->add_edge( "$parent" => "$node",
 		  label => $node_name,
 		) if $parent;
@@ -629,6 +638,16 @@ Note that while the order of the rules is unpredictable, the order of
 criteria within each rule reflects the order in which the criteria
 will be checked at decision-making time.
 
+=item as_graphviz()
+
+Returns a C<GraphViz> object representing the tree.  Requires that the
+GraphViz module is already installed, of course.  The object returned
+will allow you to create PNGs, GIFs, image maps, or whatever graphical
+representation of your tree you might want.  Any arguments given to
+C<as_graphviz()> will be passed on to GraphViz's C<new()> method.
+
+See the L<GraphViz> docs for more info.
+
 =back
 
 =head1 LIMITATIONS
@@ -674,6 +693,6 @@ Mitchell, Tom (1997).  Machine Learning.  McGraw-Hill. pp 52-80.
 Quinlan, J. R. (1986).  Induction of decision trees.  Machine
 Learning, 1(1), pp 81-106.
 
-L<perl>.
+L<perl>, L<GraphViz>
 
 =cut
