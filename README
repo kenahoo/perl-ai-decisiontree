@@ -173,28 +173,9 @@ LIMITATIONS
         these bin values. Future versions of "AI::DecisionTree" may provide
         support for this. For now, you have to do it yourself.
 
-    No support for tree-trimming
-        Most decision tree building algorithms use a two-stage building process
-        - first a tree is built that completely fits the training data (or fits
-        it as closely as possible if noisy data is supported), and then the tree
-        is pruned so that it will generalize well to new instances. This might
-        be done either by maximizing performance on a set of held-out training
-        instances, or by pruning parts of the tree that don't seem like they'll
-        be very valuable.
-
-        Currently, we build a tree that completely fits the training data, and
-        we don't prune it. That means that the tree may overfit the training
-        data in many cases - i.e., you won't be able to see the forest for the
-        trees (or, more accurately, the tree for the leaves).
-
-        This is mainly a problem when you're using "real world" or noisy data.
-        If you're using data that you know to be a result of a rule-based
-        process and you just want to figure out what the rules are, the current
-        implementation should work fine for you.
-
 TO DO
-    All the stuff in the LIMITATIONS section, plus more. For instance, it would
-    be nice to create a GraphViz (or Dot) graphical representation of the tree.
+    All the stuff in the LIMITATIONS section. Also, revisit the pruning
+    algorithm to see how it can be improved.
 
 AUTHOR
     Ken Williams, ken@mathforum.org
