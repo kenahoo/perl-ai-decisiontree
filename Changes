@@ -1,5 +1,38 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.05
+
+ - Fixed a concurrency problem that occurred when making more than one
+   decision tree.  All tree data is now stored as member data, not
+   class data.
+
+ - DecisionTree.pm is now pure-perl again (though Instance.pm still
+   has an XS component).
+
+ - Fixed a one-off bug in the Instance.xs code that could create
+   garbage data.
+
+ - Handles "sparse" data better.  Sparse data means that every
+   attribute doesn't have to be defined for every training/test
+   instance.  This can now be a meaningful property - the absence of a
+   value is currently equivalent to a special "<undef>" value.
+
+ - Don't trigger warnings when undefined attribute values are
+   encountered (as happens with sparse data).
+
+ - Added documentation for the 'prune' parameter to new()
+
+ - More consistent with memory allocation in Instance.xs - uses the
+   perl memory macros/functions from `perldoc perlclib` instead of raw
+   malloc/realloc/free.
+
+ - Catches possible infinite loop situations when growing the tree
+   (which shouldn't usually happen, but other mistakes can cause it)
+
+ - The Instance class now has a numeric-only interface, without string
+   translation.  String translation is done in the main DecisionTree
+   class.  This isn't really a user-visible change.
+
 0.04  Wed Sep  4 19:52:23 AEST 2002
 
  - Now uses regular XS instead of Inline for the C code parts. [patch
