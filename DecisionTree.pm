@@ -15,9 +15,12 @@ sub new {
   return bless {
 		noise_mode => 'fatal',
 		prune => 1,
+		purge => 1,
+		verbose => 0,
 		@_,
 		nodes => 0,
 		instances => [],
+		name_gen => 0,
 	       }, $package;
 }
 
@@ -28,6 +31,7 @@ sub add_instance {
   my ($self, %args) = @_;
   croak "Missing 'attributes' parameter" unless $args{attributes};
   croak "Missing 'result' parameter" unless defined $args{result};
+  $args{name} = $self->{name_gen}++ unless exists $args{name};
   
   my @attributes;
   while (my ($k, $v) = each %{$args{attributes}}) {
@@ -35,7 +39,7 @@ sub add_instance {
   }
   $_ ||= 0 foreach @attributes;
   
-  push @{$self->{instances}}, AI::DecisionTree::Instance->new(\@attributes, _hlookup($self->{results}, $args{result}));
+  push @{$self->{instances}}, AI::DecisionTree::Instance->new(\@attributes, _hlookup($self->{results}, $args{result}), $args{name});
 }
 
 sub _hlookup {
@@ -47,11 +51,8 @@ sub _hlookup {
   return $hash->{$key};
 }
 
-sub train {
-  my ($self) = @_;
-  croak "Cannot train the same tree twice" if $self->{tree};
-  croak "Must add training instances before calling train()" unless @{ $self->{instances} };
-
+sub _create_lookup_hashes {
+  my $self = shift;
   my $h = $self->{results};
   $self->{results_reverse} = [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
   
@@ -59,13 +60,53 @@ sub train {
     my $h = $self->{attribute_values}{$attr};
     $self->{attribute_values_reverse}{$attr} = [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
   }
+}
 
+sub train {
+  my ($self) = @_;
+  croak "Cannot train the same tree twice" if $self->{tree};
+  croak "Must add training instances before calling train()" unless @{ $self->{instances} };
+
+  $self->_create_lookup_hashes;
   $self->{tree} = $self->_expand_node( instances => $self->{instances} );
-  delete $self->{instances};
 
   $self->prune_tree if $self->{prune};
-  delete @{$self}{qw(attribute_values attribute_values_reverse results results_reverse)};
+  $self->do_purge if $self->purge;
   return 1;
+}
+
+sub do_purge {
+  my $self = shift;
+  delete @{$self}{qw(instances attribute_values attribute_values_reverse results results_reverse)};
+}
+
+sub copy_instances {
+  my ($self, %opt) = @_;
+  croak "Missing 'from' parameter to copy_instances()" unless exists $opt{from};
+  my $other = $opt{from};
+  croak "'from' parameter is not a decision tree" unless UNIVERSAL::isa($other, __PACKAGE__);
+
+  foreach (qw(instances attributes attribute_values results)) {
+    $self->{$_} = $other->{$_};
+  }
+  $self->_create_lookup_hashes;
+}
+
+sub set_results {
+  my ($self, $hashref) = @_;
+  foreach my $instance (@{$self->{instances}}) {
+    my $name = $instance->name;
+    croak "No result given for instance '$name'" unless exists $hashref->{$name};
+    $instance->set_result( $self->{results}{ $hashref->{$name} } );
+  }
+}
+
+sub instances { $_[0]->{instances} }
+
+sub purge {
+  my $self = shift;
+  $self->{purge} = shift if @_;
+  return $self->{purge};
 }
 
 # Each node contains:
@@ -79,6 +120,7 @@ sub train {
 sub _expand_node {
   my ($self, %args) = @_;
   my $instances = $args{instances};
+  print STDERR '.' if $self->{verbose};
   
   $self->{nodes}++;
 
@@ -110,7 +152,7 @@ sub _expand_node {
   
   my %split;
   foreach my $i (@$instances) {
-    my $v = $self->_delete_value($i, $best_attr);
+    my $v = $self->_value($i, $best_attr);
     push @{$split{ defined($v) ? $v : '<undef>' }}, $i;
   }
   die ("Something's wrong: attribute '$best_attr' didn't split ",
@@ -444,13 +486,16 @@ trees.
 
 =over 4
 
-=item new()
+=item new(...parameters...)
 
-=item new(noise_mode => 'pick_best')
+Creates a new decision tree object and returns it.  Accepts the
+following parameters:
 
-Creates a new decision tree object and returns it.
+=over 4
 
-Accepts a parameter, C<noise_mode>, which controls the behavior of the
+=item noise_mode
+
+Controls the behavior of the
 C<train()> method when "noisy" data is encountered.  Here "noisy"
 means that two or more training instances contradict each other, such
 that they have identical attributes but different results.
@@ -460,17 +505,35 @@ method will throw an exception (die).  If C<noise_mode> is set to
 C<pick_best>, the most frequent result at each noisy node will be
 selected.
 
-C<new()> also accepts a boolean C<prune> parameter which specifies
+=item prune
+
+A boolean C<prune> parameter which specifies
 whether the tree should be pruned after training.  This is usually a
 good idea, so the default is to prune.  Currently we prune using a
 simple minimum-description-length criterion.
 
-=item add_instance(attributes => \%hash, result => $string)
+=item verbose
+
+If set to a true value, some status information will be output while
+training a decision tree.  Default is false.
+
+=item purge
+
+If set to a true value, the C<do_purge()> method will be invoked
+during C<train()>.  The default is true.
+
+=back
+
+=item add_instance(attributes => \%hash, result => $string, name => $string)
 
 Adds a training instance to the set of instances which will be used to
 form the tree.  An C<attributes> parameter specifies a hash of
 attribute-value pairs for the instance, and a C<result> parameter
 specifies the result.
+
+An optional C<name> parameter lets you give a unique name to each
+training instance.  This can be used in coordination with the
+C<set_results()> method below.
 
 =item train()
 
@@ -484,11 +547,42 @@ C<attributes> parameter specifies a hash of attribute-value pairs for
 the instance.  If the decision tree doesn't have enough information to
 find a result, it will return C<undef>.
 
+=item do_purge()
+
+Purges training instances and their associated information from the
+DecisionTree object.  This can save memory after training, and since
+the training instances are implemented as C structs, this turns the
+DecisionTree object into a pure-perl data structure that can be more
+easily saved with C<Storable.pm>, for instance.
+
+=item purge()
+
+Returns true or false depending on the value of the tree's C<purge>
+property.  An optional boolean argument sets the property.
+
+=item copy_instances(from =E<gt> $other_tree)
+
+Allows two trees to share the same set of training instances.  More
+commonly, this lets you train one tree, then re-use its instances in
+another tree (possibly changing the instance C<result> values using
+C<set_results()>), which is much faster than re-populating the second
+tree's instances from scratch.
+
+=item set_results(\%results)
+
+Given a hash that relates instance names to instance result values,
+change the result values as specified.
+
 =back
 
 =head2 Tree Introspection
 
 =over 4
+
+=item instances()
+
+Returns a reference to an array of the training instances used to
+build this tree.
 
 =item nodes()
 
