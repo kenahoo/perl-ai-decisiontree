@@ -43,8 +43,11 @@ while (<DATA>) {
   my $result = pop @values;
   my %pairs = map {$names[$_], $values[$_]} 0..$#names;
 
-  my $guess = $dtree->get_result(attributes => \%pairs);
-  (($guess||'') eq $result ? $good : $bad)++;
+  my ($guess, $confidence) = $dtree->get_result(attributes => \%pairs);
+  $guess ||= '';  $confidence ||= '';
+  ($guess eq $result ? $good : $bad)++;
+  
+  print "$guess : $result : $confidence\n";
 }
 my $accuracy = $good/($good + $bad);
 ok $accuracy > .8;
@@ -52,6 +55,16 @@ print "Accuracy=$accuracy\n";
 
 #use YAML; print Dump($dtree->rule_tree);
 #print map "$_\n", $dtree->rule_statements;
+
+my $file = '/tmp/tree2.png';
+my $graphviz = $dtree->as_graphviz;
+ok $graphviz;
+
+open my($fh), "> $file" or die "$file: $!";
+print $fh $graphviz->as_png;
+close $fh;
+system('open', $file);
+
 
 
 # The following data comes from the "C4.5" software package, in the
