@@ -1,6 +1,26 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.02
+
+ - Added support for noisy data, currently by picking the best (most
+   common) result when noise is encountered.  See the 'noise_mode'
+   parameter to new().
+
+ - Added the rule_tree() method, which returns a data structure
+   representing the tree. [James Smith]
+
+ - Significantly sped up the train() method, especially for large data
+   sets.
+
+ - The get_result() method is no longer implemented recursively, which
+   simplifies it and speeds it up.
+
+ - Reformatted the documentation and added a TO DO section.
+
+ - Documented the nodes() method.
+
 0.01  Sat Jun  8 12:45:03 2002
-	- original version; created by h2xs 1.21 with options
-		-XA -n AI::DecisionTree
+
+ - original version; created by h2xs 1.21 with options
+   -XA -n AI::DecisionTree
 
