@@ -140,7 +140,7 @@ sub best_attr {
     
     my $score = 0;
     while (my ($opt, $vals) = each %tallies) {
-      $score += $totals{$opt} / $self->entropy2( $vals, $totals{$opt} );
+      $score += $totals{$opt} * $self->entropy2( $vals, $totals{$opt} );
     }
 
     ($best_attr, $best_score) = ($attr, $score) if $score < $best_score;
