@@ -84,6 +84,7 @@ sub _expand_node {
   foreach my $i (@$instances) {
     push @{$split{ delete $i->{attributes}{$best_attr} }}, $i;
   }
+
   foreach my $opt (keys %split) {
     $node{children}{$opt} = $self->_expand_node( instances => $split{$opt} );
   }
@@ -93,7 +94,7 @@ sub _expand_node {
 
 sub best_attr {
   my ($self, $instances) = @_;
-
+print STDERR '.';
   # 0 is a perfect score, entropy(#instances) is the worst possible score
   
   my ($best_score, $best_attr) = ($self->entropy( map $_->{result}, @$instances ), undef);
@@ -160,8 +161,11 @@ sub prune_tree {
   my $i = $self->{tree}{instances};
   my $exception_cost = log($r) * log($i) / log(2)**2;
 
+  # Pruning can turn a branch into a leaf
   my $maybe_prune = sub {
-    my ($self, $node, $parent, $node_name) = @_;
+    my ($self, $node) = @_;
+    return unless $node->{children};  # Can't prune leaves
+
     my $nodes_below = $self->nodes_below($node);
     my $tree_cost = 2 * $nodes_below - 1;  # $edges_below == $nodes_below - 1
     
@@ -171,9 +175,9 @@ sub prune_tree {
     my $score = -$nodes_below - ($exceptions - $simple_rule_exceptions) * $exception_cost;
     #warn "Score = $score = -$nodes_below - ($exceptions - $simple_rule_exceptions) * $exception_cost\n";
     if ($score < 0) {
-      delete $parent->{children}{$node_name};
-      delete @{$parent}{'split_on', 'exceptions', 'nodes_below'};
-      $parent->{result} = $parent->{distribution}[0];
+warn "Pruning node";
+      delete @{$node}{'children', 'split_on', 'exceptions', 'nodes_below'};
+      $node->{result} = $node->{distribution}[0];
       # XXX I'm not cleaning up 'exceptions' or 'nodes_below' keys up the tree
     }
   };
