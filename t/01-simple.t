@@ -4,7 +4,7 @@
 #########################
 
 use Test;
-BEGIN { plan tests => 30 };
+BEGIN { plan tests => 31 };
 use AI::DecisionTree;
 ok(1); # If we made it this far, we're ok.
 
@@ -87,6 +87,20 @@ ok $dtree->rule_tree->[1]{overcast}, 'yes';
 					      );
 ok $result, 'no';
 ok $confidence, 1;
+
+{
+  # Test attribute callbacks
+  my %attributes = (
+		    outlook => 'rain',
+		    temperature => 'mild',
+		    humidity => 'high',
+		    wind => 'strong',
+		   );
+
+  my $result  = $dtree->get_result( callback => sub { $attributes{$_[0]} } );
+  ok $result, 'no';
+}
+
 
 #print map "$_\n", $dtree->rule_statements;
 #use YAML; print Dump $dtree;
