@@ -107,6 +107,11 @@ METHODS
             If set to a true value, the "do_purge()" method will be invoked
             during "train()". The default is true.
 
+        max_depth
+            Controls the maximum depth of the tree that will be created during
+            "train()". The default is 0, which means that trees of unlimited
+            depth can be constructed.
+
     add_instance(attributes => \%hash, result => $string, name => $string)
         Adds a training instance to the set of instances which will be used to
         form the tree. An "attributes" parameter specifies a hash of
@@ -118,7 +123,9 @@ METHODS
         "set_results()" method below.
 
     train()
-        Builds the decision tree from the list of training instances.
+        Builds the decision tree from the list of training instances. If a
+        numeric "max_depth" parameter is supplied, the maximum tree depth can be
+        controlled (see also the "new()" method).
 
     get_result(attributes => \%hash)
         Returns the most likely result (from the set of all results given to
@@ -157,6 +164,12 @@ METHODS
 
     nodes()
         Returns the number of nodes in the trained decision tree.
+
+    depth()
+        Returns the depth of the tree. This is the maximum number of decisions
+        that would need to be made to classify an unseen instance, i.e. the
+        length of the longest path from the tree's root to a leaf. A tree with a
+        single node would have a depth of zero.
 
     rule_tree()
         Returns a data structure representing the decision tree. For instance,
@@ -199,6 +212,15 @@ METHODS
         criteria within each rule reflects the order in which the criteria will
         be checked at decision-making time.
 
+    as_graphviz()
+        Returns a "GraphViz" object representing the tree. Requires that the
+        GraphViz module is already installed, of course. The object returned
+        will allow you to create PNGs, GIFs, image maps, or whatever graphical
+        representation of your tree you might want. Any arguments given to
+        "as_graphviz()" will be passed on to GraphViz's "new()" method.
+
+        See the the GraphViz manpage docs for more info.
+
 LIMITATIONS
     A few limitations exist in the current version. All of them could be removed
     in future versions - especially with your help. =)
@@ -232,5 +254,5 @@ SEE ALSO
     Quinlan, J. R. (1986). Induction of decision trees. Machine Learning, 1(1),
     pp 81-106.
 
-    the perl manpage.
+    the perl manpage, the GraphViz manpage
 
