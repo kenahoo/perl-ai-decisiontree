@@ -5,6 +5,7 @@ Instance/Instance.pm
 Instance/Instance.xs
 Instance/Makefile.PL
 Instance/t/01-basic.t
+Instance/t/02-leaktest.t
 Instance/typemap
 MANIFEST
 Makefile.PL

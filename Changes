@@ -1,5 +1,10 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.06
+
+ - Fixed an XS memory leak that was afflicting all training instances.
+   Added tests to make sure leak stays plugged.
+
 0.05  Thu Sep 12 01:22:34 AEST 2002
 
  - Fixed a concurrency problem that occurred when making more than one
