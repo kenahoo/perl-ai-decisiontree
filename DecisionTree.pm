@@ -9,6 +9,7 @@ sub new {
   my $package = shift;
   return bless {
 		noise_mode => 'fatal',
+		prune => 1,
 		@_,
 		nodes => 0,
 	       }, $package;
@@ -24,6 +25,7 @@ sub add_instance {
   
   $self->{attributes}{$_}{$args{attributes}{$_}} = 1 foreach keys %{$args{attributes}};
   push @{$self->{instances}}, {%args};
+  $self->{results}{ $args{result} } = 1;
 }
 
 sub train {
@@ -32,9 +34,13 @@ sub train {
   croak "Must add training instances before calling train()" unless $self->{instances};
   
   $self->{tree} = $self->_expand_node( instances => $self->{instances} );
+  delete $self->{instances};
+
+  $self->prune_tree if $self->{prune};
+  return 1;
 }
 
-# Each node is:
+# Each node contains:
 #  { split_on => $attr_name,
 #    children => { $attr_value1 => $node1,
 #                  $attr_value2 => $node2, ... }
@@ -44,38 +50,45 @@ sub train {
 
 sub _expand_node {
   my ($self, %args) = @_;
-  my @instances = @{$args{instances}};
+  my $instances = $args{instances};
   
   $self->{nodes}++;
 
   my %results;
-  $results{$_->{result}}++ foreach @instances;
+  $results{$_->{result}}++ foreach @$instances;
+  my @results = map {$_,$results{$_}} sort {$results{$b} <=> $results{$a}} keys %results;
+  my %node = ( distribution => \@results, instances => scalar @$instances );
+
   if (keys(%results) == 1) {
     # All these instances have the same result - make this node a leaf
-    return { result => $instances[0]->{result} };
+    $node{result} = $instances->[0]{result};
+    return \%node;
   }
 
-  my $node = {};
   
   # Multiple values are present - find the best predictor attribute and split on it
-  $node->{split_on} = my $best_attr = $self->best_attr(\@instances);
+  my $best_attr = $self->best_attr($instances);
 
   croak "Inconsistent data, can't build tree with noise_mode='fatal'"
     if $self->{noise_mode} eq 'fatal' and !defined $best_attr;
 
-  # Pick the most frequent result for this leaf
-  return { result => (sort {$results{$b} <=> $results{$a}} keys %results)[0] }
-    unless defined $best_attr;
+  unless (defined $best_attr) {
+    # Pick the most frequent result for this leaf
+    $node{result} = (sort {$results{$b} <=> $results{$a}} keys %results)[0];
+    return \%node;
+  }
+  
+  $node{split_on} = $best_attr;
   
   my %split;
-  foreach my $i (@instances) {
+  foreach my $i (@$instances) {
     push @{$split{ delete $i->{attributes}{$best_attr} }}, $i;
   }
   foreach my $opt (keys %split) {
-    $node->{children}{$opt} = $self->_expand_node( instances => $split{$opt} );
+    $node{children}{$opt} = $self->_expand_node( instances => $split{$opt} );
   }
-
-  return $node;
+  
+  return \%node;
 }
 
 sub best_attr {
@@ -129,19 +142,127 @@ sub entropy {
   return (log(@_) - $sum/@_)/log(2);
 }
 
+sub prune_tree {
+  my $self = shift;
+
+  # We use a minimum-description-length approach.  We calculate the
+  # score of each node:
+  #  n = number of nodes below
+  #  r = number of results (categories) in the entire tree
+  #  i = number of instances in the entire tree
+  #  e = number of errors below this node
+
+  # Hypothesis description length (MML):
+  #  describe tree: number of nodes + number of edges
+  #  describe exceptions: num_exceptions * log2(total_num_instances) * log2(total_num_results)
+  
+  my $r = keys %{ $self->{results} };
+  my $i = $self->{tree}{instances};
+  my $exception_cost = log($r) * log($i) / log(2)**2;
+
+  my $maybe_prune = sub {
+    my ($self, $node, $parent, $node_name) = @_;
+    my $nodes_below = $self->nodes_below($node);
+    my $tree_cost = 2 * $nodes_below - 1;  # $edges_below == $nodes_below - 1
+    
+    my $exceptions = $self->exceptions( $node );
+    my $simple_rule_exceptions = $node->{instances} - $node->{distribution}[1];
+
+    my $score = -$nodes_below - ($exceptions - $simple_rule_exceptions) * $exception_cost;
+    #warn "Score = $score = -$nodes_below - ($exceptions - $simple_rule_exceptions) * $exception_cost\n";
+    if ($score < 0) {
+      delete $parent->{children}{$node_name};
+      delete @{$parent}{'split_on', 'exceptions', 'nodes_below'};
+      $parent->{result} = $parent->{distribution}[0];
+      # XXX I'm not cleaning up 'exceptions' or 'nodes_below' keys up the tree
+    }
+  };
+
+  $self->_traverse($maybe_prune);
+}
+
+sub exceptions {
+  my ($self, $node) = @_;
+  return $node->{exceptions} if exists $node->{exeptions};
+  
+  my $count = 0;
+  if ( exists $node->{result} ) {
+    $count = $node->{instances} - $node->{distribution}[1];
+  } else {
+    foreach my $child ( values %{$node->{children}} ) {
+      $count += $self->exceptions($child);
+    }
+  }
+  
+  return $node->{exceptions} = $count;
+}
+
+sub nodes_below {
+  my ($self, $node) = @_;
+  return $node->{nodes_below} if exists $node->{nodes_below};
+
+  my $count = 0;
+  $self->_traverse( sub {$count++}, $node );
+
+  return $node->{nodes_below} = $count - 1;
+}
+
+# This is *not* for external use, I may change it.
+sub _traverse {
+  my ($self, $callback, $node, $parent, $node_name) = @_;
+  $node ||= $self->{tree};
+  
+  ref($callback) ? $callback->($self, $node, $parent, $node_name) : $self->$callback($node, $parent, $node_name);
+  
+  return unless $node->{children};
+  foreach my $child ( keys %{$node->{children}} ) {
+    $self->_traverse($callback, $node->{children}{$child}, $node, $child);
+  }
+}
+
 sub get_result {
   my ($self, %args) = @_;
   croak "Missing 'attributes' parameter" unless $args{attributes};
   
   $self->train unless $self->{tree};
   my $tree = $self->{tree};
+  my $count = 0;
   
   while (1) {
-    return $tree->{result} if exists $tree->{result};
+    if (exists $tree->{result}) {
+      my $r = $tree->{result};
+      return ($r, $tree->{distribution}[1] / $tree->{instances}, $count) if wantarray;
+      return $r;
+    }
+    $count++;
+
     return undef unless exists $args{attributes}{$tree->{split_on}};
     $tree = $tree->{children}{ $args{attributes}{$tree->{split_on}} }
       or return undef;
   }
+}
+
+sub as_graphviz {
+  my $self = shift;
+  require GraphViz;
+  my $g = new GraphViz;
+
+  my $id = 1;
+  my $add_edge = sub {
+    my ($self, $node, $parent, $node_name) = @_;
+    # We use stringified reference names for node names, as a convenient hack.
+
+    $g->add_node( "$node",
+		  label => $node->{split_on} || $node->{result},
+		  shape => ($node->{split_on} ? 'ellipse' : 'box'),
+		);
+    $g->add_edge( "$parent" => "$node",
+		  label => $node_name,
+		) if $parent;
+  };
+
+  $self->_traverse( $add_edge );
+  return $g;
 }
 
 sub rule_tree {
