@@ -1,11 +1,14 @@
 Revision history for Perl extension AI::DecisionTree.
 
-0.07
+0.07  Fri Jun  6 10:37:51 CDT 2003
 
  - Created tests for the set_results() and copy_instances() methods.
 
  - Added documentation for as_graphviz() and increased the information
    contained in the GraphViz object.
+
+ - Added the ability to limit the absolute depth of the tree when
+   training.
 
 0.06  Wed Sep 18 13:59:24 EST 2002
 
