@@ -64,6 +64,7 @@ sub train {
   delete $self->{instances};
 
   $self->prune_tree if $self->{prune};
+  delete @{$self}{qw(attribute_values attribute_values_reverse results results_reverse)};
   return 1;
 }
 
