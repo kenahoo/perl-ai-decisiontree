@@ -1,5 +1,10 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.08  Mon Jul  7 18:01:16 CDT 2003
+
+ - Added a 'leaf_color' parameter for making GraphViz objects more
+   colorful.
+
 0.07  Fri Jun  6 10:37:51 CDT 2003
 
  - Created tests for the set_results() and copy_instances() methods.

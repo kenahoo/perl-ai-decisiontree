@@ -216,10 +216,16 @@ METHODS
         Returns a "GraphViz" object representing the tree. Requires that the
         GraphViz module is already installed, of course. The object returned
         will allow you to create PNGs, GIFs, image maps, or whatever graphical
-        representation of your tree you might want. Any arguments given to
-        "as_graphviz()" will be passed on to GraphViz's "new()" method.
+        representation of your tree you might want.
 
-        See the the GraphViz manpage docs for more info.
+        A "leaf_color" argument can specify a fill color for each leaf node in
+        the tree. The keys of the hash should be the same as the strings
+        appearing as the "result" parameters given to "add_instance()", and the
+        values should be any GraphViz-style color specification.
+
+        Any additional arguments given to "as_graphviz()" will be passed on to
+        GraphViz's "new()" method. See the the GraphViz manpage docs for more
+        info.
 
 LIMITATIONS
     A few limitations exist in the current version. All of them could be removed
