@@ -1,6 +1,6 @@
 Revision history for Perl extension AI::DecisionTree.
 
-0.05
+0.05  Thu Sep 12 01:22:34 AEST 2002
 
  - Fixed a concurrency problem that occurred when making more than one
    decision tree.  All tree data is now stored as member data, not
