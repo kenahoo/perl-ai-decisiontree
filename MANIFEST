@@ -1,6 +1,7 @@
 Changes
 DecisionTree.pm
-Makefile.PL
+INSTALL
 MANIFEST
+Makefile.PL
 README
 test.pl
