@@ -106,14 +106,16 @@ if (eval "use GraphViz; 1") {
 # Make sure there are 8 nodes
 ok $dtree->nodes, 8;
 
-# Should barf on inconsistent data
-my $t2 = new AI::DecisionTree;
-$t2->add_instance( attributes => { foo => 'bar' },
-		   result => 1 );
-$t2->add_instance( attributes => { foo => 'bar' },
-		   result => 0 );
-eval {$t2->train};
-ok( "$@", '/Inconsistent data/' );
+{
+  # Should barf on inconsistent data
+  my $t2 = new AI::DecisionTree;
+  $t2->add_instance( attributes => { foo => 'bar' },
+		     result => 1 );
+  $t2->add_instance( attributes => { foo => 'bar' },
+		     result => 0 );
+  eval {$t2->train};
+  ok( "$@", '/Inconsistent data/' );
+}
 
 {
   # Make sure two trees can be trained concurrently
