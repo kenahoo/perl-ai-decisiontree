@@ -144,21 +144,20 @@ sub get_result {
   }
 }
 
-sub get_rule_tree {
-    my $self = shift;
-
-    # build tree:
-    # [ question, { results => [ question, { ... } ] } ]
-    my($tree) = @_ ? @_ : $self->{tree};
-
-    return $tree -> {result} if exists $tree->{result};
-
-    return [ $tree->{split_on}, {
-        map {
-            $_ => $self -> get_rule_tree($tree->{children}{$_})
-        } keys %{$tree -> {children}}
-      }
-    ];
+sub rule_tree {
+  my $self = shift;
+  my ($tree) = @_ ? @_ : $self->{tree};
+  
+  # build tree:
+  # [ question, { results => [ question, { ... } ] } ]
+  
+  return $tree->{result} if exists $tree->{result};
+  
+  return [
+	  $tree->{split_on}, {
+			      map { $_ => $self->rule_tree($tree->{children}{$_}) } keys %{$tree->{children}},
+			     }
+	 ];
 }
 
 sub rule_statements {
@@ -261,26 +260,38 @@ trees.
 
 =head1 METHODS
 
-=head2 new()
+=head2 Building and Querying the Tree
 
-Creates a new decision tree object.
+=over 4
 
-=head2 add_instance()
+=item new()
+
+=item new(noise_mode => 'pick_best')
+
+Creates a new decision tree object and returns it.
+
+Accepts a parameter, C<noise_mode>, which controls the behavior of the
+C<train()> method when "noisy" data is encountered.  Here "noisy"
+means that two or more training instances contradict each other, such
+that they have identical attributes but different results.
+
+If C<noise_mode> is set to C<fatal> (the default), the C<train()>
+method will throw an exception (die).  If C<noise_mode> is set to
+C<pick_best>, the most frequent result at each noisy node will be
+selected.
+
+=item add_instance(attributes => \%hash, result => $string)
 
 Adds a training instance to the set of instances which will be used to
 form the tree.  An C<attributes> parameter specifies a hash of
 attribute-value pairs for the instance, and a C<result> parameter
 specifies the result.
 
-=head2 train()
+=item train()
 
 Builds the decision tree from the list of training instances.
 
-=head2 nodes()
-
-Returns the number of nodes in the trained decision tree.
-
-=head2 get_result()
+=item get_result(attributes => \%hash)
 
 Returns the most likely result (from the set of all results given to
 C<add_instance()>) for the set of attribute values given.  An
@@ -288,7 +299,17 @@ C<attributes> parameter specifies a hash of attribute-value pairs for
 the instance.  If the decision tree doesn't have enough information to
 find a result, it will return C<undef>.
 
-=head2 get_rule_tree()
+=back
+
+=head2 Tree Introspection
+
+=over 4
+
+=item nodes()
+
+Returns the number of nodes in the trained decision tree.
+
+=item rule_tree()
 
 Returns a data structure representing the decision tree.  For 
 instance, for the tree diagram above, the following data structure 
@@ -313,7 +334,7 @@ Note that while the ordering in the hashes is unpredictable, the
 nesting is in the order in which the criteria will be checked at 
 decision-making time.
 
-=head2 rule_statements()
+=item rule_statements()
 
 Returns a list of strings that describe the tree in rule-form.  For
 instance, for the tree diagram above, the following list would be
@@ -332,12 +353,16 @@ Note that while the order of the rules is unpredictable, the order of
 criteria within each rule reflects the order in which the criteria
 will be checked at decision-making time.
 
+=back
+
 =head1 LIMITATIONS
 
 A few limitations exist in the current version.  All of them could be
 removed in future versions - especially with your help. =)
 
-=head2 No continuous attributes
+=over 4
+
+=item No continuous attributes
 
 In the current implementation, only discrete-valued attributes are
 supported.  This means that an attribute like "temperature" can have
@@ -355,15 +380,7 @@ the tree based on these bin values.  Future versions of
 C<AI::DecisionTree> may provide support for this.  For now, you have
 to do it yourself.
 
-=head2 No support for noisy or inconsistent data
-
-Currently, the tree-building technique cannot handle inconsistent
-data.  That is, if you have two contradictory training instances, the
-C<train()> method will throw an exception.  Future versions may allow
-inconsistent data, finding the decision tree that most closely matches
-the data rather than precisely matching it.
-
-=head2 No support for tree-trimming
+=item No support for tree-trimming
 
 Most decision tree building algorithms use a two-stage building
 process - first a tree is built that completely fits the training data
@@ -382,6 +399,14 @@ This is mainly a problem when you're using "real world" or noisy data.
 If you're using data that you know to be a result of a rule-based
 process and you just want to figure out what the rules are, the
 current implementation should work fine for you.
+
+=back
+
+=head1 TO DO
+
+All the stuff in the LIMITATIONS section, plus more.  For instance, it
+would be nice to create a GraphViz (or Dot) graphical representation
+of the tree.
 
 =head1 AUTHOR
 
