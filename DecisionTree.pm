@@ -99,7 +99,7 @@ sub best_attr {
 print STDERR '.';
   # 0 is a perfect score, entropy(#instances) is the worst possible score
   
-  my ($best_score, $best_attr) = ($self->entropy( map $_->result_int, @$instances ), undef);
+  my ($best_score, $best_attr) = (@$instances * $self->entropy( map $_->result_int, @$instances ), undef);
   my $all_attr = AI::DecisionTree::Instance->all_attributes;
   foreach my $attr (keys %$all_attr) {
 
@@ -116,7 +116,7 @@ print STDERR '.';
     
     my $score = 0;
     while (my ($opt, $vals) = each %tallies) {
-      $score += $totals{$opt} / @$instances * $self->entropy2( $vals, $totals{$opt} )
+      $score += $totals{$opt} * $self->entropy2( $vals, $totals{$opt} )
     }
 
     ($best_attr, $best_score) = ($attr, $score) if $score < $best_score;
