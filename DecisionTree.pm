@@ -324,7 +324,8 @@ sub get_result {
 }
 
 sub as_graphviz {
-  my $self = shift;
+  my ($self, %args) = @_;
+  my $colors = delete $args{leaf_colors} || {};
   require GraphViz;
   my $g = GraphViz->new(@_);
 
@@ -341,9 +342,15 @@ sub as_graphviz {
     } else {
       my $i = 0;
       my $distr = join ',', grep {$i++ % 2} @{$node->{distribution}};
+      my %fill = (exists $colors->{$node->{result}} ?
+		  (fillcolor => $colors->{$node->{result}},
+		   style => 'filled') :
+		  ()
+		 );
       $g->add_node( "$node",
 		    label => "$node->{result} ($distr)",
 		    shape => 'box',
+		    %fill,
 		  );
     }
     $g->add_edge( "$parent" => "$node",
@@ -667,10 +674,16 @@ will be checked at decision-making time.
 Returns a C<GraphViz> object representing the tree.  Requires that the
 GraphViz module is already installed, of course.  The object returned
 will allow you to create PNGs, GIFs, image maps, or whatever graphical
-representation of your tree you might want.  Any arguments given to
-C<as_graphviz()> will be passed on to GraphViz's C<new()> method.
+representation of your tree you might want.  
 
-See the L<GraphViz> docs for more info.
+A C<leaf_color> argument can specify a fill color for each leaf node
+in the tree.  The keys of the hash should be the same as the strings
+appearing as the C<result> parameters given to C<add_instance()>, and
+the values should be any GraphViz-style color specification.
+
+Any additional arguments given to C<as_graphviz()> will be passed on
+to GraphViz's C<new()> method.  See the L<GraphViz> docs for more
+info.
 
 =back
 
