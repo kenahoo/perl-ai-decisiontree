@@ -1,6 +1,5 @@
 Changes
 DecisionTree.pm
-DecisionTree.xs
 INSTALL
 Instance/Instance.pm
 Instance/Instance.xs
