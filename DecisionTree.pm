@@ -6,7 +6,6 @@ BEGIN {
 
 use strict;
 use Carp;
-use AI::DecisionTree::Instance;
 use DynaLoader ();
 use vars qw($VERSION @ISA);
 
@@ -30,17 +29,40 @@ sub add_instance {
   my ($self, %args) = @_;
   croak "Missing 'attributes' parameter" unless $args{attributes};
   croak "Missing 'result' parameter" unless defined $args{result};
-  
-  $self->{attributes}{$_}{$args{attributes}{$_}} = 1 foreach keys %{$args{attributes}};
-  push @{$self->{instances}}, AI::DecisionTree::Instance->new($args{attributes}, $args{result});
-  $self->{results}{ $args{result} } = 1;
+
+  my @attributes;
+  while (my ($k, $v) = each %{$args{attributes}}) {
+    $attributes[ _hlookup($self->{attributes}, $k) ] = _hlookup($self->{attribute_values}{$k}, $v);
+  }
+  $_ ||= 0 foreach @attributes;
+
+  push @{$self->{instances}}, $self->_instance(\@attributes, _hlookup($self->{results}, $args{result}));
+}
+
+sub _hlookup {
+  $_[0] ||= {};
+  my ($hash, $key) = @_;
+  unless (exists $hash->{$key}) {
+    $hash->{$key} = 1 + keys %$hash;
+  }
+  return $hash->{$key};
 }
 
 sub train {
   my ($self) = @_;
   croak "Cannot train the same tree twice" if $self->{tree};
   croak "Must add training instances before calling train()" unless @{ $self->{instances} };
+
+  my $h = $self->{results};
+  $self->{results_reverse} = 
+    [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
   
+  foreach my $attr (keys %{$self->{attribute_values}}) {
+    my $h = $self->{attribute_values}{$attr};
+    $self->{attribute_values_reverse}{$attr} =
+      [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
+  }
+
   $self->{tree} = $self->_expand_node( instances => $self->{instances} );
   delete $self->{instances};
 
@@ -63,13 +85,13 @@ sub _expand_node {
   $self->{nodes}++;
 
   my %results;
-  $results{$_->result}++ foreach @$instances;
+  $results{$self->_result($_)}++ foreach @$instances;
   my @results = map {$_,$results{$_}} sort {$results{$b} <=> $results{$a}} keys %results;
   my %node = ( distribution => \@results, instances => scalar @$instances );
 
   if (keys(%results) == 1) {
     # All these instances have the same result - make this node a leaf
-    $node{result} = $instances->[0]->result;
+    $node{result} = $self->_result($instances->[0]);
     return \%node;
   }
 
@@ -90,7 +112,8 @@ sub _expand_node {
   
   my %split;
   foreach my $i (@$instances) {
-    push @{$split{ $i->delete_value($best_attr) }}, $i;
+    my $v = $self->_delete_value($i, $best_attr);
+    push @{$split{ defined($v) ? $v : '' }}, $i;
   }
 
   foreach my $opt (keys %split) {
@@ -105,8 +128,8 @@ sub best_attr {
 
   # 0 is a perfect score, entropy(#instances) is the worst possible score
   
-  my ($best_score, $best_attr) = (@$instances * $self->entropy( map $_->result_int, @$instances ), undef);
-  my $all_attr = AI::DecisionTree::Instance->all_attributes;
+  my ($best_score, $best_attr) = (@$instances * $self->entropy( map _result_int($_), @$instances ), undef);
+  my $all_attr = $self->{attributes};
   foreach my $attr (keys %$all_attr) {
 
     # %tallies is correlation between each attr value and result
@@ -302,6 +325,31 @@ sub rule_statements {
   return @out;
 }
 
+### Some instance accessor stuff:
+
+sub _result {
+  my ($self, $instance) = @_;
+  my $int = _result_int($instance);
+#warn "Result ($instance) is $int -> $self->{results_reverse}[$int]\n";
+  return $self->{results_reverse}[$int];
+}
+
+sub _delete_value {
+  my ($self, $instance, $attr) = @_;
+  my $val = $self->_value($instance, $attr);
+  return unless defined $val;
+  
+  _set_value($instance, $self->{attributes}{$attr}, 0);
+  return $val;
+}
+
+sub _value {
+  my ($self, $instance, $attr) = @_;
+  return unless exists $self->{attributes}{$attr};
+  my $val_int = _value_int($instance, $self->{attributes}{$attr});
+  return $self->{attribute_values_reverse}{$attr}[$val_int];
+}
+
 
 
 1;
@@ -410,6 +458,11 @@ If C<noise_mode> is set to C<fatal> (the default), the C<train()>
 method will throw an exception (die).  If C<noise_mode> is set to
 C<pick_best>, the most frequent result at each noisy node will be
 selected.
+
+C<new()> also accepts a boolean C<prune> parameter which specifies
+whether the tree should be pruned after training.  This is usually a
+good idea, so the default is to prune.  Currently we prune using a
+simple minimum-description-length criterion.
 
 =item add_instance(attributes => \%hash, result => $string)
 
