@@ -1,5 +1,11 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.09
+
+ - get_result() can now take a callback subroutine, rather than just a
+   hash reference, to check the attributes of the given instance.
+   This allows lazy instance checking.
+
 0.08  Mon Jul  7 18:01:16 CDT 2003
 
  - Added a 'leaf_color' parameter for making GraphViz objects more
