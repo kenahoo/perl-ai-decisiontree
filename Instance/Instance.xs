@@ -126,7 +126,7 @@ tally (pkg, instances_r, tallies_r, totals_r, attr)
       for (i=0; i<=top; i++) {
 	instance_r = av_fetch(instances, i, 0);
 	instance = (Instance *) SvIV(SvRV(*instance_r));
-	v = instance->num_values < attr ? 0 : instance->values[attr];
+        v = attr < instance->num_values ? instance->values[attr] : 0;
 	if (!v) {
 	  num_undef++;
 	  continue;
