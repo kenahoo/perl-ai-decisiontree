@@ -4,7 +4,7 @@ use strict;
 use AI::DecisionTree::Instance;
 use Carp;
 use vars qw($VERSION @ISA);
-$VERSION = '0.07';
+$VERSION = '0.08';
 
 
 sub new {
