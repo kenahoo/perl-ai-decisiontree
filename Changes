@@ -1,5 +1,9 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.07
+
+ - Created tests for the set_results() and copy_instances() methods.
+
 0.06  Wed Sep 18 13:59:24 EST 2002
 
  - Fixed an XS memory leak that was afflicting all training instances.
