@@ -4,7 +4,7 @@
 #########################
 
 use Test;
-BEGIN { plan tests => 10 };
+BEGIN { plan tests => 11 };
 use AI::DecisionTree;
 ok(1); # If we made it this far, we're ok.
 
