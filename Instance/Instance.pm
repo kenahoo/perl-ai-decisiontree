@@ -1,74 +1,14 @@
 package AI::DecisionTree::Instance;
 BEGIN {
-  $VERSION = '0.01';
+  $VERSION = '0.02';
+  @ISA = qw(DynaLoader);
 }
 
-use 5.006;
 use strict;
-use vars qw($VERSION);
-use Inline C => <<'END', NAME => __PACKAGE__, VERSION => $VERSION, CLEAN_AFTER_BUILD => 0;
+use vars qw($VERSION @ISA);
+use DynaLoader ();
 
-typedef struct {
-  int result;
-  int num_values;
-  int *values;
-} Instance;
-
-Instance *new_struct (char *class, int result, SV *values_ref) {
-  Instance* instance = malloc(sizeof(Instance));
-  AV* values = (AV*) SvRV(values_ref);
-  int i;
-
-  instance->result = result;
-  instance->num_values = 1 + av_len(values);
-  instance->values = malloc(instance->num_values * sizeof(int));
-
-  for(i=0; i<instance->num_values; i++) {
-    instance->values[i] = (int) SvIV( *av_fetch(values, i, 0) );
-  }
-
-  return instance;
-}
-
-void _set_value (Instance* instance, int attribute, int value) {
-  int *new_values;
-  int i;
-
-  if (attribute >= instance->num_values) {
-    if (!value) return; /* Nothing to do */
-    
-    printf("Expanding from %d to %d places\n", instance->num_values, attribute);
-    new_values = realloc(instance->values, attribute * sizeof(int));
-    if (!new_values)
-      croak("Couldn't grab new memory to expand instance");
-    
-    for (i=instance->num_values; i<attribute-1; i++)
-      new_values[i] = 0;
-    free(instance->values);
-    instance->values = new_values;
-    instance->num_values = 1 + attribute;
-  }
-
-  instance->values[attribute] = value;
-}
-
-int value_int (Instance *instance, int attribute) {
-  if (attribute >= instance->num_values) return 0;
-  return instance->values[attribute];
-}
-
-int result_int (Instance *instance) {
-  return instance->result;
-}
-
-void DESTROY (Instance *instance) {
-  free(instance->values);
-  free(instance);
-}
-
-END
-
-
+bootstrap AI::DecisionTree::Instance $VERSION;
 
 my %RESULTS;
 my %ATTRIBUTES;

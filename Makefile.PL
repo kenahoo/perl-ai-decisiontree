@@ -18,9 +18,6 @@ WriteMakefile
                       ),
              },
    # 'clean' => {FILES => "t/httpd.conf t/error_log t/httpd"},
-   'PREREQ_PM' => {
-		   Inline => '0.43',
-		  },
    ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
     (ABSTRACT_FROM => $name, # retrieve abstract from module
      AUTHOR     => 'Ken Williams <ken@mathforum.org>') : 
