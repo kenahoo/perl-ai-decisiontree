@@ -1,4 +1,5 @@
 Makefile
 DecisionTree.c
 DecisionTree.bs
-AI-DecisionTree-
+AI-DecisionTree-*
+.lwpcookies
