@@ -1,9 +1,22 @@
 Revision history for Perl extension AI::DecisionTree.
 
-0.06
+0.06  Wed Sep 18 13:59:24 EST 2002
 
  - Fixed an XS memory leak that was afflicting all training instances.
    Added tests to make sure leak stays plugged.
+
+ - Added the 'purge' and 'verbose' parameters to new().
+
+ - add_instance() now accepts a 'name' parameter.
+
+ - Users can now control whether training instances are purged after
+   training, using the 'purge' parameter to new() and/or the
+   do_purge() method.
+
+ - Added the set_results() and copy_instances() methods, which let you
+   re-use training instances from one tree to another.
+
+ - Added the instances() and purge() accessor methods.
 
 0.05  Thu Sep 12 01:22:34 AEST 2002
 
