@@ -56,18 +56,21 @@ print "Accuracy=$accuracy\n";
 #use YAML; print Dump($dtree->rule_tree);
 #print map "$_\n", $dtree->rule_statements;
 
-my $graphviz = $dtree->as_graphviz;
-ok $graphviz;
+if (eval "use GraphViz; 1") {
+  my $graphviz = $dtree->as_graphviz;
+  ok $graphviz;
 
-if (0) {
-  my $file = '/tmp/tree2.png';
-  open my($fh), "> $file" or die "$file: $!";
-  print $fh $graphviz->as_png;
-  close $fh;
-  system('open', $file);
+  if (0) {
+    # Only works on Mac OS X
+    my $file = '/tmp/tree2.png';
+    open my($fh), "> $file" or die "$file: $!";
+    print $fh $graphviz->as_png;
+    close $fh;
+    system('open', $file);
+  }
+} else {
+  skip("Skipping: GraphViz is not installed", 0);
 }
-
-
 
 # The following data comes from the "C4.5" software package, in the
 # "soybean.data" data file.  It is somewhat noisy.  I chose it because
