@@ -10,7 +10,7 @@ my $x = 0;
 {
   local *{"AI::DecisionTree::Instance::DESTROY"} = sub { $x = 1 };
   {
-    my $i = new AI::DecisionTree::Instance([3,4], 4);
+    my $i = new AI::DecisionTree::Instance([3,4], 4, "foo");
     ok $x, 0;
   }
   ok $x, 1;
