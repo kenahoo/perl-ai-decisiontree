@@ -255,7 +255,8 @@ sub _traverse {
 sub get_result {
   my ($self, %args) = @_;
   croak "Missing 'attributes' parameter" unless $args{attributes};
-  
+  my $a = $args{attributes};
+
   $self->train unless $self->{tree};
   my $tree = $self->{tree};
   my $count = 0;
@@ -268,8 +269,8 @@ sub get_result {
     }
     $count++;
 
-    return undef unless exists $args{attributes}{$tree->{split_on}};
-    $tree = $tree->{children}{ $args{attributes}{$tree->{split_on}} }
+    my $instance_val = exists $a->{$tree->{split_on}} ? $a->{$tree->{split_on}} : '<undef>';
+    $tree = $tree->{children}{ $instance_val }
       or return undef;
   }
 }

@@ -127,10 +127,7 @@ tally (pkg, instances_r, tallies_r, totals_r, attr)
 	instance_r = av_fetch(instances, i, 0);
 	instance = (Instance *) SvIV(SvRV(*instance_r));
         v = attr < instance->num_values ? instance->values[attr] : 0;
-	if (!v) {
-	  num_undef++;
-	  continue;
-	}
+	/* if (!v) { num_undef++; continue; } */
 	
 	/* $totals{$v}++ */
 	hash_entry = hv_fetch(totals, (char *)&v, sizeof(I32), 1);
