@@ -1,6 +1,6 @@
 package AI::DecisionTree::Instance;
 BEGIN {
-  $VERSION = '0.02';
+  $VERSION = '0.03';
   @ISA = qw(DynaLoader);
 }
 
@@ -9,57 +9,6 @@ use vars qw($VERSION @ISA);
 use DynaLoader ();
 
 bootstrap AI::DecisionTree::Instance $VERSION;
-
-my %RESULTS;
-my %ATTRIBUTES;
-my %ATTRIBUTE_VALUES;
-my %XBACK;
-
-sub new {
-  my ($package, $attributes, $result) = @_;
-  
-  my (@attributes);
-  while (my ($k, $v) = each %$attributes) {
-    $attributes[ _hlookup(\%ATTRIBUTES, $k) ] = _hlookup($ATTRIBUTE_VALUES{$k} ||= {}, $v);
-  }
-  $_ ||= 0 foreach @attributes;
-
-  return $package->new_struct( _hlookup(\%RESULTS, $result), \@attributes );
-}
-
-sub all_attributes {
-  return \%ATTRIBUTES;
-}
-
-sub delete_value {
-  my ($self, $attr) = @_;
-  my $val = $self->value($attr);
-  return unless defined $val;
-  
-  $self->_set_value($ATTRIBUTES{$attr}, 0);
-  return $val;
-}
-
-sub value {
-  my ($self, $attr) = @_;
-  return unless exists $ATTRIBUTES{$attr};
-  my $val_int = $self->value_int($ATTRIBUTES{$attr});
-  return $XBACK{$ATTRIBUTE_VALUES{$attr}}[$val_int];
-}
-
-sub result {
-  my $int = shift->result_int();
-  return $XBACK{\%RESULTS}[$int];
-}
-
-sub _hlookup {
-  my ($hash, $key) = @_;
-  unless (exists $hash->{$key}) {
-    $hash->{$key} = 1 + keys %$hash;
-    $XBACK{"$hash"}[ $hash->{$key} ] = $key;  # WHEE!
-  }
-  return $hash->{$key};
-}
 
 1;
 __END__
