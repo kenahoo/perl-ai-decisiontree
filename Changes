@@ -1,5 +1,18 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.04  Wed Sep  4 19:52:23 AEST 2002
+
+ - Now uses regular XS instead of Inline for the C code parts. [patch
+   by Matt Sergeant]
+
+ - Converted the inner loop of the best_attr() method to C code,
+   because it was spending a lot of time in accessor methods for the C
+   structures it was using.  Don't worry, I'm not going C-crazy.  I
+   won't be making many (any?) more of these kinds of changes, but
+   these ones were probably necessary.
+
+ - Removed a bit of debugging code that I left in for 0.03.
+
 0.03  Mon Sep  2 11:41:18 AEST 2002
 
  - Added a 'prune' parameter to new(), which controls whether the tree

@@ -21,10 +21,10 @@ while (<$fh>) {
 }
 
 print "Training...\n";
-<STDIN>;
+#<STDIN>;
 $t->train;
 print "done\n";
-<STDIN>;
+#<STDIN>;
 
 #use YAML; print Dump $t->rule_tree;
 my $stats = new Statistics::Contingency(categories => ['spam','nonspam']);
