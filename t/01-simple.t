@@ -87,14 +87,16 @@ ok $confidence, 1;
 #print map "$_\n", $dtree->rule_statements;
 #use YAML; print Dump $dtree;
 
-my $file = '/tmp/tree.png';
 my $graphviz = $dtree->as_graphviz;
 ok $graphviz;
 
-open my($fh), "> $file" or die "$file: $!";
-print $fh $graphviz->as_png;
-close $fh;
-system('open', $file);
+if (0) {
+  my $file = '/tmp/tree.png';
+  open my($fh), "> $file" or die "$file: $!";
+  print $fh $graphviz->as_png;
+  close $fh;
+  system('open', $file);
+}
 
 # Make sure there are 8 nodes
 ok $dtree->nodes, 8;
