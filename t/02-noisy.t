@@ -50,15 +50,28 @@ my $accuracy = $good/($good + $bad);
 ok $accuracy > .8;
 print "Accuracy=$accuracy\n";
 
-#use YAML; print Dump($dtree->get_rule_tree);
+#use YAML; print Dump($dtree->rule_tree);
 #print map "$_\n", $dtree->rule_statements;
 
 
 # The following data comes from the "C4.5" software package, in the
-# "soybean.data" data file.  It is somewhat noisy.  Since the data
-# seemed to be in order from most-information to least-information or
-# something, I randomized the order of the instances.  Note also that
-# I'm treating the '?' value as a normal string value.
+# "soybean.data" data file.  It is somewhat noisy.  I chose it because
+# it was a pretty big data set, and because there are published
+# results on it that I can compare to.  Since the data seemed to be in
+# order from most-information to least-information or something in the
+# C4.5 distribution, I randomized the order of the instances.  Note
+# also that I'm treating the '?' value as a normal string value.
+
+# It looks like the original data source is
+#     (a) Michalski,R.S. Learning by being told and learning from
+#         examples: an experimental comparison of the two methodes of knowledge
+#         acquisition in the context of developing an expert system for soybean
+#         desease diagnoiss", International Journal of Policy Analysis and
+#         Information Systems, 1980, 4(2), 125-161.
+
+# The "C4.5" package is written by J.R. Quinlan and may be downloaded
+# and used for free, but it is not supported and may not be
+# redistributed.
 
 __DATA__
 date, plant-stand, precip, temp, hail, crop-hist, area-damaged, severity, seed-tmt, germination, plant-growth, leaves, leafspots-halo, leafspots-marg, leafspot-size, leaf-shread, leaf-malf, leaf-mild, stem, lodging, stem-cankers, canker-lesion, fruiting-bodies, external decay, mycelium, int-discolor, sclerotia, fruit-pods, fruit spots, seed, mold-growth, seed-discolor, seed-size, shriveling, roots
