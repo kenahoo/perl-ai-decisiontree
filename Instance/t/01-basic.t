@@ -1,21 +1,20 @@
 #!/usr/bin/perl
 
 use Test;
-BEGIN { plan tests => 8 }
+BEGIN { plan tests => 7 }
 
 use AI::DecisionTree::Instance;
 ok(1);
 
-my $i = new AI::DecisionTree::Instance({foo => 'fooey', bar=> 'barrey'}, 'sports');
-ok $i->value('foo'), 'fooey';
-ok $i->value('bar'), 'barrey';
-ok $i->result, 'sports';
+my $i = AI::DecisionTree::Instance->new([1, 2], 0);
+ok $i->value_int(0), 1;
+ok $i->value_int(1), 2;
+ok $i->result_int, 0;
 
-$i->delete_value('foo');
-ok $i->value('foo'), undef;
+$i->set_value(0, 3);
+ok $i->value_int(0), 3;
 
-$i = new AI::DecisionTree::Instance({foo => 'foo2'}, 'nature');
-ok $i->value('foo'), 'foo2';
-ok $i->value('bar'), undef;
-ok $i->result, 'nature';
+$i = new AI::DecisionTree::Instance([4], 2);
+ok $i->value_int(0), 4;
+ok $i->result_int, 2;
 
