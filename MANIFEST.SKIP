@@ -10,3 +10,7 @@ CVS
 ^eg/spam
 ^spam
 ^tmon\.out$
+^Instance/Makefile$
+^Instance/Instance.(xs|c|bundle|inl)$
+^Instance/_Inline
+^Instance/pm_to_blib$
