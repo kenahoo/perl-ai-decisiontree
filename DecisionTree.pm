@@ -73,7 +73,8 @@ sub train {
   local $self->{max_depth} = $args{max_depth} if exists $args{max_depth};
   $self->{depth} = 0;
   $self->{tree} = $self->_expand_node( instances => $self->{instances} );
-
+  $self->{total_instances} = @{$self->{instances}};
+  
   $self->prune_tree if $self->{prune};
   $self->do_purge if $self->purge;
   return 1;
@@ -134,6 +135,10 @@ sub _expand_node {
   $results{$self->_result($_)}++ foreach @$instances;
   my @results = map {$_,$results{$_}} sort {$results{$b} <=> $results{$a}} keys %results;
   my %node = ( distribution => \@results, instances => scalar @$instances );
+
+  foreach (keys %results) {
+    $self->{prior_freqs}{$_} += $results{$_};
+  }
 
   if (keys(%results) == 1) {
     # All these instances have the same result - make this node a leaf
@@ -302,22 +307,30 @@ sub _traverse {
 
 sub get_result {
   my ($self, %args) = @_;
-  croak "Missing 'attributes' parameter" unless $args{attributes};
-  my $a = $args{attributes};
+  croak "Missing 'attributes' or 'callback' parameter" unless $args{attributes} or $args{callback};
 
   $self->train unless $self->{tree};
   my $tree = $self->{tree};
-  my $count = 0;
   
   while (1) {
     if (exists $tree->{result}) {
       my $r = $tree->{result};
-      return ($r, $tree->{distribution}[1] / $tree->{instances}, $count) if wantarray;
-      return $r;
-    }
-    $count++;
+      return $r unless wantarray;
 
-    my $instance_val = exists $a->{$tree->{split_on}} ? $a->{$tree->{split_on}} : '<undef>';
+      my %dist = @{$tree->{distribution}};
+      my $confidence = $tree->{distribution}[1] / $tree->{instances};
+
+#      my $confidence = P(H|D) = [P(D|H)P(H)]/[P(D|H)P(H)+P(D|H')P(H')]
+#                              = [P(D|H)P(H)]/P(D);
+#      my $confidence = 
+#      $confidence *= $self->{prior_freqs}{$r} / $self->{total_instances};
+      
+      return ($r, $confidence, \%dist);
+    }
+    
+    my $instance_val = (exists $args{callback} ? $args{callback}->($tree->{split_on}) :
+			exists $args{attributes}{$tree->{split_on}} ? $args{attributes}{$tree->{split_on}} :
+			'<undef>');
     $tree = $tree->{children}{ $instance_val }
       or return undef;
   }
