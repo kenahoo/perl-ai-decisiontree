@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 typedef struct {
+  char *name;
   int result;
   int num_values;
   int *values;
@@ -19,10 +20,11 @@ MODULE = AI::DecisionTree::Instance         PACKAGE = AI::DecisionTree::Instance
 PROTOTYPES: DISABLE
 
 Instance *
-new (class, values_ref, result)
+new (class, values_ref, result, name)
     char * class
     SV *   values_ref
     int    result
+    char * name
   CODE:
     {
       int i;
@@ -30,6 +32,7 @@ new (class, values_ref, result)
       AV* values = (AV*) SvRV(values_ref);
       New(0, instance, 1, Instance);
     
+      instance->name   = savepv(name);
       instance->result = result;
       instance->num_values = 1 + av_len(values);
       New(0, instance->values, instance->num_values, int);
@@ -42,6 +45,25 @@ new (class, values_ref, result)
     }
   OUTPUT:
     RETVAL
+
+char *
+name (instance)
+    Instance*   instance
+  CODE:
+    {
+      RETVAL = instance->name;
+    }
+  OUTPUT:
+    RETVAL
+
+void
+set_result (instance, result)
+    Instance*   instance
+    int         result
+  CODE:
+    {
+      instance->result = result;
+    }
 
 void
 set_value (instance, attribute, value)
@@ -100,6 +122,7 @@ DESTROY (instance)
     Instance *  instance
   PPCODE:
     {
+      Safefree(instance->name);
       Safefree(instance->values);
       Safefree(instance);
     }
