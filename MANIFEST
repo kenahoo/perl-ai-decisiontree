@@ -3,7 +3,6 @@ DecisionTree.pm
 INSTALL
 Instance/Instance.pm
 Instance/Makefile.PL
-Instance/Makefile.old
 Instance/t/01-basic.t
 Instance/typemap
 MANIFEST

@@ -7,6 +7,11 @@ Revision history for Perl extension AI::DecisionTree.
    default is to prune.  Currently we prune using a simple
    minimum-description-length criterion.
 
+ - Training instances are now represented using a C struct rather than
+   a Perl hash.  This can dramatically reduce memory usage, though it
+   doesn't have much effect on speed.  Note that Inline.pm is now
+   required.
+
  - The list of instances is now deleted after training, since it's no
    longer needed.
 
