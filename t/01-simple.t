@@ -4,7 +4,7 @@
 #########################
 
 use Test;
-BEGIN { plan tests => 6 };
+BEGIN { plan tests => 8 };
 use AI::DecisionTree;
 ok(1); # If we made it this far, we're ok.
 
@@ -68,6 +68,11 @@ ok($result, 'yes');
 
 # Make sure rule_statements() works
 ok !!grep {$_ eq "if outlook='overcast' -> 'yes'"} $dtree->rule_statements;
+
+# Make sure rule_tree() works
+ok $dtree->rule_tree->[0], 'outlook';
+ok $dtree->rule_tree->[1]{overcast}, 'yes';
+
 #print map "$_\n", $dtree->rule_statements;
 
 # Make sure there are 8 nodes
