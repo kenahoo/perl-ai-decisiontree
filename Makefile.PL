@@ -19,7 +19,7 @@ WriteMakefile
              },
    # 'clean' => {FILES => "t/httpd.conf t/error_log t/httpd"},
    'PREREQ_PM' => {
-		   # Foo::Ey => '1.00',
+		   Inline => '0.43',
 		  },
    ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
     (ABSTRACT_FROM => $name, # retrieve abstract from module
