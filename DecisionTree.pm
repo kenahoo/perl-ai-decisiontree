@@ -99,16 +99,18 @@ sub best_attr {
 print STDERR '.';
   # 0 is a perfect score, entropy(#instances) is the worst possible score
   
-  my ($best_score, $best_attr) = ($self->entropy( map $_->result, @$instances ), undef);
-  foreach my $attr (keys %{$self->{attributes}}) {
+  my ($best_score, $best_attr) = ($self->entropy( map $_->result_int, @$instances ), undef);
+  my $all_attr = AI::DecisionTree::Instance->all_attributes;
+  foreach my $attr (keys %$all_attr) {
 
     # %tallies is correlation between each attr value and result
     # %total is number of instances with each attr value
     my (%tallies, %totals);
     foreach (@$instances) {
-      next unless defined $_->value($attr);
-      $tallies{ $_->value($attr) }{ $_->result }++;
-      $totals{ $_->value($attr) }++;
+      my $v = $_->value_int($all_attr->{$attr});
+      next unless $v;
+      $tallies{ $v }{ $_->result_int }++;
+      $totals{ $v }++;
     }
     next unless keys %totals; # Make sure at least one instance defines this attribute
     
