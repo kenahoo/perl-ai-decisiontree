@@ -1,6 +1,6 @@
 package AI::DecisionTree;
 BEGIN {
-  $VERSION = '0.03';
+  $VERSION = '0.04';
   @ISA = qw(DynaLoader);
 }
 
@@ -102,7 +102,7 @@ sub _expand_node {
 
 sub best_attr {
   my ($self, $instances) = @_;
-print STDERR '.';
+
   # 0 is a perfect score, entropy(#instances) is the worst possible score
   
   my ($best_score, $best_attr) = (@$instances * $self->entropy( map $_->result_int, @$instances ), undef);
@@ -111,9 +111,7 @@ print STDERR '.';
 
     # %tallies is correlation between each attr value and result
     # %total is number of instances with each attr value
-    my %totals = ();
-    my %tallies = ();
-#warn "     $self->_tally($instances, \%tallies, \%totals, $all_attr->{$attr}); \n";
+    my (%totals, %tallies);
     $self->_tally($instances, \%tallies, \%totals, $all_attr->{$attr});
     next unless keys %totals; # Make sure at least one instance defines this attribute
     
