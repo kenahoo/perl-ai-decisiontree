@@ -1,10 +1,16 @@
 package AI::DecisionTree;
-$VERSION = '0.03';
+BEGIN {
+  $VERSION = '0.03';
+  @ISA = qw(DynaLoader);
+}
 
-use 5.006;
 use strict;
 use Carp;
 use AI::DecisionTree::Instance;
+use DynaLoader ();
+use vars qw($VERSION @ISA);
+
+bootstrap AI::DecisionTree $VERSION;
 
 sub new {
   my $package = shift;
@@ -105,13 +111,10 @@ print STDERR '.';
 
     # %tallies is correlation between each attr value and result
     # %total is number of instances with each attr value
-    my (%tallies, %totals);
-    foreach (@$instances) {
-      my $v = $_->value_int($all_attr->{$attr});
-      next unless $v;
-      $tallies{ $v }{ $_->result_int }++;
-      $totals{ $v }++;
-    }
+    my %totals = ();
+    my %tallies = ();
+#warn "     $self->_tally($instances, \%tallies, \%totals, $all_attr->{$attr}); \n";
+    $self->_tally($instances, \%tallies, \%totals, $all_attr->{$attr});
     next unless keys %totals; # Make sure at least one instance defines this attribute
     
     my $score = 0;
