@@ -2,6 +2,9 @@ Revision history for Perl extension AI::DecisionTree.
 
 0.09
 
+ - as_graphviz(%args) wasn't passing %args through properly to the
+   GraphViz->new() method.  Fixed.  [Ian Knopke]
+
  - get_result() can now take a callback subroutine, rather than just a
    hash reference, to check the attributes of the given instance.
    This allows lazy instance checking.

@@ -340,7 +340,7 @@ sub as_graphviz {
   my ($self, %args) = @_;
   my $colors = delete $args{leaf_colors} || {};
   require GraphViz;
-  my $g = GraphViz->new(@_);
+  my $g = GraphViz->new(%args);
 
   my $id = 1;
   my $add_edge = sub {
