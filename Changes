@@ -1,6 +1,6 @@
 Revision history for Perl extension AI::DecisionTree.
 
-0.03
+0.03  Mon Sep  2 11:41:18 AEST 2002
 
  - Added a 'prune' parameter to new(), which controls whether the tree
    will be pruned after training.  This is usually a good idea, so the
@@ -30,7 +30,7 @@ Revision history for Perl extension AI::DecisionTree.
    They're not terribly pretty graphviz objects yet, but they're
    visual.
 
-0.02  Sat Aug 10, 2002 21:02
+0.02  Sat Aug 10, 2002 21:02 AEST
 
  - Added support for noisy data, currently by picking the best (most
    common) result when noise is encountered.  See the 'noise_mode'
