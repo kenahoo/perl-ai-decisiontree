@@ -9,5 +9,4 @@ WRAPPED_C_OBJECT
 OUTPUT
 WRAPPED_C_OBJECT
 	/* 'class' must be an argument to any function that returns this datatype */
-	$arg = sv_setref_pv(newSViv(0), class, (void *)$var);
-
+	sv_setref_pv($arg, class, (void*)$var);
