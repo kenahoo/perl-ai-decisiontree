@@ -38,10 +38,11 @@ void _set_value (Instance* instance, int attribute, int value) {
     if (!value) return; /* Nothing to do */
     
     printf("Expanding from %d to %d places\n", instance->num_values, attribute);
-    new_values = malloc(attribute * sizeof(int));
-    for (i=0; i<instance->num_values; i++)
-      new_values[i] = instance->values[i];
-    for (i=instance->num_values; i<attribute; i++)
+    new_values = realloc(instance->values, attribute * sizeof(int));
+    if (!new_values)
+      croak("Couldn't grab new memory to expand instance");
+    
+    for (i=instance->num_values; i<attribute-1; i++)
       new_values[i] = 0;
     free(instance->values);
     instance->values = new_values;
