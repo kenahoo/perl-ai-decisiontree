@@ -5,11 +5,10 @@ BEGIN {
 }
 
 use strict;
+use AI::DecisionTree::Instance;
 use Carp;
-use DynaLoader ();
 use vars qw($VERSION @ISA);
 
-bootstrap AI::DecisionTree $VERSION;
 
 sub new {
   my $package = shift;
@@ -29,18 +28,18 @@ sub add_instance {
   my ($self, %args) = @_;
   croak "Missing 'attributes' parameter" unless $args{attributes};
   croak "Missing 'result' parameter" unless defined $args{result};
-
+  
   my @attributes;
   while (my ($k, $v) = each %{$args{attributes}}) {
     $attributes[ _hlookup($self->{attributes}, $k) ] = _hlookup($self->{attribute_values}{$k}, $v);
   }
   $_ ||= 0 foreach @attributes;
-
-  push @{$self->{instances}}, $self->_instance(\@attributes, _hlookup($self->{results}, $args{result}));
+  
+  push @{$self->{instances}}, AI::DecisionTree::Instance->new(\@attributes, _hlookup($self->{results}, $args{result}));
 }
 
 sub _hlookup {
-  $_[0] ||= {};
+  $_[0] ||= {}; # Autovivify as a hash
   my ($hash, $key) = @_;
   unless (exists $hash->{$key}) {
     $hash->{$key} = 1 + keys %$hash;
@@ -54,13 +53,11 @@ sub train {
   croak "Must add training instances before calling train()" unless @{ $self->{instances} };
 
   my $h = $self->{results};
-  $self->{results_reverse} = 
-    [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
+  $self->{results_reverse} = [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
   
   foreach my $attr (keys %{$self->{attribute_values}}) {
     my $h = $self->{attribute_values}{$attr};
-    $self->{attribute_values_reverse}{$attr} =
-      [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
+    $self->{attribute_values_reverse}{$attr} = [ undef, sort {$h->{$a} <=> $h->{$b}} keys %$h ];
   }
 
   $self->{tree} = $self->_expand_node( instances => $self->{instances} );
@@ -113,11 +110,14 @@ sub _expand_node {
   my %split;
   foreach my $i (@$instances) {
     my $v = $self->_delete_value($i, $best_attr);
-    push @{$split{ defined($v) ? $v : '' }}, $i;
+    push @{$split{ defined($v) ? $v : '<undef>' }}, $i;
   }
+  die ("Something's wrong: attribute '$best_attr' didn't split ",
+       scalar @$instances, " instances into multiple buckets (@{[ keys %split ]})")
+    unless keys %split > 1;
 
-  foreach my $opt (keys %split) {
-    $node{children}{$opt} = $self->_expand_node( instances => $split{$opt} );
+  foreach my $value (keys %split) {
+    $node{children}{$value} = $self->_expand_node( instances => $split{$value} );
   }
   
   return \%node;
@@ -128,19 +128,19 @@ sub best_attr {
 
   # 0 is a perfect score, entropy(#instances) is the worst possible score
   
-  my ($best_score, $best_attr) = (@$instances * $self->entropy( map _result_int($_), @$instances ), undef);
+  my ($best_score, $best_attr) = (@$instances * $self->entropy( map $_->result_int, @$instances ), undef);
   my $all_attr = $self->{attributes};
   foreach my $attr (keys %$all_attr) {
 
     # %tallies is correlation between each attr value and result
     # %total is number of instances with each attr value
     my (%totals, %tallies);
-    $self->_tally($instances, \%tallies, \%totals, $all_attr->{$attr});
+    my $num_undef = AI::DecisionTree::Instance::->tally($instances, \%tallies, \%totals, $all_attr->{$attr});
     next unless keys %totals; # Make sure at least one instance defines this attribute
     
     my $score = 0;
     while (my ($opt, $vals) = each %tallies) {
-      $score += $totals{$opt} * $self->entropy2( $vals, $totals{$opt} )
+      $score += $totals{$opt} / $self->entropy2( $vals, $totals{$opt} );
     }
 
     ($best_attr, $best_score) = ($attr, $score) if $score < $best_score;
@@ -156,7 +156,7 @@ sub entropy2 {
   # Entropy is defined with log base 2 - we just divide by log(2) at the end to adjust.
   my $sum = 0;
   $sum += $_ * log($_) foreach values %$counts;
-  return (log($total) - $sum/$total)/log(2);
+  return +(log($total) - $sum/$total)/log(2);
 }
 
 sub entropy {
@@ -168,7 +168,7 @@ sub entropy {
   # Entropy is defined with log base 2 - we just divide by log(2) at the end to adjust.
   my $sum = 0;
   $sum += $_ * log($_) foreach values %count;
-  return (log(@_) - $sum/@_)/log(2);
+  return +(log(@_) - $sum/@_)/log(2);
 }
 
 sub prune_tree {
@@ -329,8 +329,7 @@ sub rule_statements {
 
 sub _result {
   my ($self, $instance) = @_;
-  my $int = _result_int($instance);
-#warn "Result ($instance) is $int -> $self->{results_reverse}[$int]\n";
+  my $int = $instance->result_int;
   return $self->{results_reverse}[$int];
 }
 
@@ -339,14 +338,14 @@ sub _delete_value {
   my $val = $self->_value($instance, $attr);
   return unless defined $val;
   
-  _set_value($instance, $self->{attributes}{$attr}, 0);
+  $instance->set_value($self->{attributes}{$attr}, 0);
   return $val;
 }
 
 sub _value {
   my ($self, $instance, $attr) = @_;
   return unless exists $self->{attributes}{$attr};
-  my $val_int = _value_int($instance, $self->{attributes}{$attr});
+  my $val_int = $instance->value_int($self->{attributes}{$attr});
   return $self->{attribute_values_reverse}{$attr}[$val_int];
 }
 
