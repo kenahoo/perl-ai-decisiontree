@@ -1,5 +1,7 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.09 - Sat Jul 26 23:09:44 2008
+
  - Make a new release so that a META.yml file is generated. [Suggested
    by Alexandr Ciornii]
 
