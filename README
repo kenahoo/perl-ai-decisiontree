@@ -4,15 +4,15 @@ NAME
 SYNOPSIS
       use AI::DecisionTree;
       my $dtree = new AI::DecisionTree;
-  
-      # A set of training data for deciding whether to play tennis
+      
+  # A set of training data for deciding whether to play tennis
       $dtree->add_instance
         (attributes => {outlook     => 'sunny',
                         temperature => 'hot',
                         humidity    => 'high'},
          result => 'no');
-  
-      $dtree->add_instance
+      
+  $dtree->add_instance
         (attributes => {outlook     => 'overcast',
                         temperature => 'hot',
                         humidity    => 'normal'},
@@ -20,8 +20,8 @@ SYNOPSIS
 
       ... repeat for several more instances, then:
       $dtree->train;
-  
-      # Find results for unseen instances
+      
+  # Find results for unseen instances
       my $result = $dtree->get_result
         (attributes => {outlook     => 'sunny',
                         temperature => 'hot',
@@ -77,7 +77,6 @@ DESCRIPTION
 
 METHODS
   Building and Querying the Tree
-
     new(...parameters...)
         Creates a new decision tree object and returns it. Accepts the following
         parameters:
@@ -157,7 +156,6 @@ METHODS
         change the result values as specified.
 
   Tree Introspection
-
     instances()
         Returns a reference to an array of the training instances used to build
         this tree.
@@ -224,8 +222,7 @@ METHODS
         values should be any GraphViz-style color specification.
 
         Any additional arguments given to "as_graphviz()" will be passed on to
-        GraphViz's "new()" method. See the the GraphViz manpage docs for more
-        info.
+        GraphViz's "new()" method. See the GraphViz docs for more info.
 
 LIMITATIONS
     A few limitations exist in the current version. All of them could be removed
@@ -260,5 +257,5 @@ SEE ALSO
     Quinlan, J. R. (1986). Induction of decision trees. Machine Learning, 1(1),
     pp 81-106.
 
-    the perl manpage, the GraphViz manpage
+    perl, GraphViz
 

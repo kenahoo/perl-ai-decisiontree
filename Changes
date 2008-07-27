@@ -1,5 +1,8 @@
 Revision history for Perl extension AI::DecisionTree.
 
+ - Make a new release so that a META.yml file is generated. [Suggested
+   by Alexandr Ciornii]
+
 0.09
 
  - as_graphviz(%args) wasn't passing %args through properly to the
