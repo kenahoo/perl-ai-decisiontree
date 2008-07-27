@@ -1,6 +1,6 @@
 package AI::DecisionTree::Instance;
 BEGIN {
-  $VERSION = '0.04';
+  $VERSION = '0.09';
   @ISA = qw(DynaLoader);
 }
 
