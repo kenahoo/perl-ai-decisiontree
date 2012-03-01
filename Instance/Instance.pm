@@ -1,12 +1,11 @@
 package AI::DecisionTree::Instance;
-BEGIN {
-  $VERSION = '0.09';
-  @ISA = qw(DynaLoader);
-}
 
 use strict;
 use vars qw($VERSION @ISA);
+$VERSION = '0.09';
+
 use DynaLoader ();
+@ISA = qw(DynaLoader);
 
 bootstrap AI::DecisionTree::Instance $VERSION;
 

@@ -331,6 +331,7 @@ sub get_result {
     my $instance_val = (exists $args{callback} ? $args{callback}->($tree->{split_on}) :
 			exists $args{attributes}{$tree->{split_on}} ? $args{attributes}{$tree->{split_on}} :
 			'<undef>');
+    ## no critic (ProhibitExplicitReturnUndef)
     $tree = $tree->{children}{ $instance_val }
       or return undef;
   }
