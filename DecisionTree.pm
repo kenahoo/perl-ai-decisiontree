@@ -690,7 +690,7 @@ GraphViz module is already installed, of course.  The object returned
 will allow you to create PNGs, GIFs, image maps, or whatever graphical
 representation of your tree you might want.  
 
-A C<leaf_color> argument can specify a fill color for each leaf node
+A C<leaf_colors> argument can specify a fill color for each leaf node
 in the tree.  The keys of the hash should be the same as the strings
 appearing as the C<result> parameters given to C<add_instance()>, and
 the values should be any GraphViz-style color specification.
