@@ -1,5 +1,14 @@
 Revision history for Perl extension AI::DecisionTree.
 
+0.11 - Fri Mar  2 21:26:51 CST 2012
+
+ - Fixed typo in docs - 'leaf_color' should be 'leaf_colors'. [spotted
+   by Julio Fraire]
+
+ - Silence a couple of Perl::Critic warnings 
+
+ - Convert to Dist::Zilla 
+
 0.09 - Sat Jul 26 23:09:44 2008
 
  - Make a new release so that a META.yml file is generated. [Suggested
