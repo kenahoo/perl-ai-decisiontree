@@ -2,7 +2,7 @@ package AI::DecisionTree::Instance;
 
 use strict;
 use vars qw($VERSION @ISA);
-$VERSION = '0.09';
+$VERSION = '0.11';
 
 use DynaLoader ();
 @ISA = qw(DynaLoader);
