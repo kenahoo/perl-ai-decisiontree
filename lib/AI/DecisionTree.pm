@@ -1,10 +1,10 @@
+use strict;
+
 package AI::DecisionTree;
 
-use strict;
 use AI::DecisionTree::Instance;
 use Carp;
-use vars qw($VERSION @ISA);
-$VERSION = '0.09';
+use vars qw(@ISA);
 
 
 sub new {
