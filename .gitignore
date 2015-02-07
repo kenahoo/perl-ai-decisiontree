@@ -1,3 +1,16 @@
 .build
 *~
 AI-Dec*
+Instance/Instance.bs
+Instance/Instance.c
+Instance/Instance.c.gcov
+Instance/Instance.gcda
+Instance/Instance.gcno
+Instance/Instance.o
+Instance/Instance.xs.gcov
+Instance/MYMETA.json
+Instance/MYMETA.yml
+Instance/Makefile
+Instance/blib/
+Instance/pm_to_blib
+Instance/cover_db
