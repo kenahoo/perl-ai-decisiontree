@@ -8,10 +8,14 @@ ok(1);
 
 my $i = AI::DecisionTree::Instance->new([1, 2], 0, "foo");
 
+is $i->name, "foo", "Instance name is set correctly";
+
 is $i->value_int(0), 1, "Verify initial values are set correctly";
 is $i->value_int(1), 2, "Verify initial values are set correctly";
 is $i->result_int, 0, "Verify initial result is set correctly";
-is $i->name, "foo", "Instance name is set correctly";
+
+$i->set_result(4);
+is $i->result_int, 4, "Setting result overwrites it";
 
 $i->set_value(0, 3);
 is $i->value_int(0), 3, "Overwriting existing value works";
