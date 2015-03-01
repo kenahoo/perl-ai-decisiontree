@@ -8,7 +8,8 @@ my ($name, $dir);
 
 WriteMakefile
   (
-   'NAME'       => $module,
+   'NAME'         => $module,
    'VERSION_FROM' => $name, # finds $VERSION
+   'clean'        => { FILES => "Instance.c.gcov Instance.gcda Instance.gcno Instance.xs.gcov" }
   );
 
